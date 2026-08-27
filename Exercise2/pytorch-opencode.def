@@ -1,0 +1,30 @@
+Bootstrap: docker
+From: pytorch:25.04-py3
+
+%post
+    apt-get update
+    apt-get install -y curl ca-certificates
+    rm -rf /var/lib/apt/lists/*
+
+    curl -fsSL https://opencode.ai/install | bash
+
+    /root/.opencode/bin/opencode --version
+
+%environment
+    export PATH="/root/.opencode/bin:${PATH}"
+
+%test
+    echo "=== OpenCode ==="
+    opencode --version
+
+    echo "=== CUDA ==="
+    nvcc --version
+
+    echo "=== C++ ==="
+    g++ --version
+
+    echo "=== MPI ==="
+    mpicxx --version
+
+    echo "=== CMake ==="
+    cmake --version

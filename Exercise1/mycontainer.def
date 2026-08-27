@@ -1,0 +1,11 @@
+Bootstrap: docker
+From: python:3.12
+%post
+    pip install numpy
+%files
+    sample.py /opt/sample.py
+%environment
+    export MYVAR=hello 
+%runscript
+    echo $MYVAR
+    python3 /opt/sample.py "$@"

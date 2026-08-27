@@ -1,0 +1,744 @@
+あなたはHPC向けソフトウェア開発を支援するコーディングエージェントです。
+
+現在あなた自身は、CUDA、MPI、CMake、C/C++コンパイラ、およびOpenCodeが利用可能な開発用Apptainerコンテナ内で実行されています。
+
+現在の作業ディレクトリ `/workspace` に、マルチGPU環境で実行可能なCUDAプログラムを実装してください。
+
+# 最重要事項
+
+あなたはすでに必要な開発環境を備えたコンテナ内で実行されています。
+
+別のApptainerコンテナを起動する必要はありません。
+
+以下を厳守してください。
+
+- `apptainer` コマンドを使用しないこと
+- `singularity` コマンドを使用しないこと
+- `/containers/pytorch.sif` を起動しないこと
+- `/containers` を探索しないこと
+- 別のコンテナを起動しようとしないこと
+- 現在の環境に存在する開発ツールを直接使用すること
+
+利用可能な開発ツールとして、少なくとも以下を想定してください。
+
+```text
+nvcc
+gcc
+g++
+mpicc
+mpicxx
+mpirun
+cmake
+```
+
+GPU情報が必要な場合は、利用可能であれば以下を使用してください。
+
+```text
+nvidia-smi
+```
+
+ただし、`nvidia-smi` が存在しない場合でも、それだけを理由にCUDAが利用できないと判断してはいけません。
+
+# 作業ディレクトリ
+
+作業対象は `/workspace` のみです。
+
+作成・変更するファイルはすべて `/workspace` 以下に置いてください。
+
+以下を厳守してください。
+
+- `/workspace` 外のファイルを変更しないこと
+- `/workspace` 外を探索しないこと
+- `/` から始まる `find` を実行しないこと
+- `/work` を探索しないこと
+- `/containers` を探索しないこと
+- `/usr` を探索しないこと
+- `/opt` を探索しないこと
+- `/etc` を探索しないこと
+- `/var` を探索しないこと
+- `/home` を探索しないこと
+- `/proc` を探索しないこと
+- システム全体からツールやライブラリを検索しないこと
+- 許可されていない外部ディレクトリへのアクセスを要求しないこと
+
+開発ツールの確認は `command -v` などの必要最小限のコマンドだけで行ってください。
+
+# 読んではいけないファイル
+
+以下のファイルは実装対象ではなく、実行ログであるため読まないでください。
+
+```text
+/workspace/OpenCode.log
+/workspace/vLLM.log
+```
+
+これらのログを解析したり、過去のOpenCodeの行動を調査したりしてはいけません。
+
+`prompt.txt` の内容は現在のタスク指示として既に与えられているため、特別な理由がない限り再度読み直す必要はありません。
+
+# 目的
+
+複数GPUを利用して並列計算を行う、初学者にも理解しやすいMPI + CUDAサンプルコードを作成してください。
+
+実装方式は以下としてください。
+
+- 1 MPI rank = 1 GPU
+- MPIによって計算範囲を複数rankへ分割する
+- 各MPI rankは自身に割り当てられたGPUを使用する
+- GPU計算にはCUDAを直接使用する
+- Kokkosは使用しない
+- 各GPUで部分和を計算する
+- `MPI_Reduce` によってrank 0へ結果を集約する
+- rank 0で解析解と比較して正しさを確認する
+
+# 実装する問題
+
+1からNまでの整数の総和
+
+```text
+1 + 2 + 3 + ... + N
+```
+
+をMPIと複数GPUを使って計算してください。
+
+解析解は
+
+```text
+N(N+1)/2
+```
+
+です。
+
+# タスク
+
+以下の順序で作業してください。
+
+1. `/workspace` の内容を一度だけ確認する
+2. 現在の環境で必要な開発ツールを確認する
+3. 必要なツールが確認できたら、それ以上の環境探索を行わない
+4. `/workspace/multi_gpu_sum.cu` を作成する
+5. `/workspace/CMakeLists.txt` を作成する
+6. `/workspace/build` にビルドする
+7. ビルドエラーが発生した場合は、コードまたはCMake設定を修正する
+8. 現在割り当てられている計算資源の範囲内で実行する
+9. 実行結果と解析解を比較する
+10. 正しさを確認する
+11. 最終報告を行う
+
+環境調査だけを続けてはいけません。
+
+必要なツールが確認できたら、直ちにコード作成へ進んでください。
+
+# 開発環境の確認
+
+最初に必要最小限の確認だけを行ってください。
+
+例えば以下です。
+
+```bash
+command -v nvcc
+command -v g++
+command -v mpicc
+command -v mpicxx
+command -v mpirun
+command -v cmake
+```
+
+必要であればバージョンを確認してください。
+
+例えば、
+
+```bash
+nvcc --version
+mpicxx --version
+cmake --version
+```
+
+程度にしてください。
+
+開発環境を確認するためにファイルシステムを探索してはいけません。
+
+以下のようなコマンドは禁止します。
+
+```bash
+find /
+find /usr
+find /opt
+ls /*
+ls /work
+ls /usr
+ls /opt
+ls /etc
+```
+
+必要なツールが見つからなかった場合は、それ以上探索せず、不足しているツールを最終報告に記載してください。
+
+# 作成するファイル
+
+最低限、以下を作成してください。
+
+```text
+/workspace/multi_gpu_sum.cu
+/workspace/CMakeLists.txt
+```
+
+ビルド時には、
+
+```text
+/workspace/build/
+```
+
+を使用してください。
+
+不要なファイルを大量に作成しないでください。
+
+# MPIによる計算範囲の分割
+
+global MPI rankとMPI world sizeを取得してください。
+
+例えば、
+
+```text
+rank
+size
+```
+
+を取得し、1からNまでの範囲をほぼ均等に各rankへ分割してください。
+
+NがMPI rank数で割り切れない場合も、すべての整数が重複なく、欠落なく処理されるようにしてください。
+
+各rankについて、
+
+```text
+開始値
+終了値
+```
+
+を決定してください。
+
+例えば、
+
+```text
+rank 0 : 1 ～ ...
+rank 1 : ... ～ ...
+```
+
+のように分割します。
+
+# GPU割り当て
+
+単純にglobal MPI rankをGPU番号として使用してはいけません。
+
+ノード内rankを取得し、そのrankに対応するGPUを使用してください。
+
+ノード内rankの取得には、例えば、
+
+```cpp
+MPI_Comm_split_type(
+    MPI_COMM_WORLD,
+    MPI_COMM_TYPE_SHARED,
+    0,
+    MPI_INFO_NULL,
+    &local_comm
+);
+```
+
+を使用してください。
+
+その後、
+
+```cpp
+MPI_Comm_rank(local_comm, &local_rank);
+MPI_Comm_size(local_comm, &local_size);
+```
+
+によってノード内rankを取得してください。
+
+CUDAでは、
+
+```cpp
+cudaGetDeviceCount()
+```
+
+によって利用可能なGPU数を取得してください。
+
+その後、
+
+```cpp
+cudaSetDevice(local_rank)
+```
+
+によってGPUを設定してください。
+
+例えば、1ノードに4 GPUあり、4 MPI rankを実行する場合、
+
+```text
+local rank 0 -> GPU 0
+local rank 1 -> GPU 1
+local rank 2 -> GPU 2
+local rank 3 -> GPU 3
+```
+
+となるようにしてください。
+
+ノード内MPI rank数が利用可能GPU数を超えている場合は、誤って同じGPUを共有せず、明確なエラーを表示して終了してください。
+
+# CUDA実装
+
+GPU計算にはCUDAを直接使用してください。
+
+Kokkosは使用しないでください。
+
+各MPI rankに割り当てられた整数範囲について、CUDAカーネル上で部分和を計算してください。
+
+1からNまでの整数をすべてGPUメモリへ保存する必要はありません。
+
+GPUには基本的に、
+
+```text
+開始値
+終了値
+```
+
+だけを渡し、カーネル内で計算対象の整数を生成してください。
+
+GPUメモリを必要以上に使用しない実装にしてください。
+
+# CUDAカーネル
+
+CUDAカーネルではgrid-stride loopを使用して構いません。
+
+概念的には、
+
+```cpp
+for (unsigned long long i = start + global_thread_id;
+     i <= end;
+     i += total_threads) {
+    local_sum += i;
+}
+```
+
+のような処理を行ってください。
+
+各スレッドがローカルな部分和を計算し、その後GPU内でreductionしてください。
+
+# GPU reduction
+
+GPU上での部分和のreductionは、初学者でも理解しやすく、正しく動作する方法を選択してください。
+
+例えば、
+
+- shared memory reduction
+- blockごとのreduction
+- `atomicAdd`
+- 複数段階reduction
+
+などを使用できます。
+
+必要以上に複雑な最適化は避けてください。
+
+正しさと可読性を優先してください。
+
+# 整数型
+
+Nが大きい場合に整数オーバーフローしないようにしてください。
+
+部分和および全体和には64 bit整数型を使用してください。
+
+例えば、
+
+```cpp
+unsigned long long
+```
+
+または、
+
+```cpp
+std::uint64_t
+```
+
+を使用してください。
+
+解析解
+
+```text
+N(N+1)/2
+```
+
+についても途中計算のオーバーフローに注意してください。
+
+可能であれば、計算可能なNの範囲を確認し、危険な入力に対して警告またはエラーを出してください。
+
+# CUDA APIのエラー処理
+
+可能な範囲でCUDA APIのエラーを確認してください。
+
+特に以下について確認してください。
+
+```text
+cudaGetDeviceCount
+cudaSetDevice
+cudaMalloc
+cudaMemcpy
+cudaFree
+CUDAカーネル起動
+cudaGetLastError
+cudaDeviceSynchronize
+```
+
+エラーが発生した場合は、可能であれば以下が分かるメッセージを出してください。
+
+```text
+MPI rank
+local rank
+GPU番号
+CUDAエラー内容
+```
+
+# MPI API
+
+MPIによる通信は必要最小限にしてください。
+
+基本的な処理は以下としてください。
+
+```text
+MPI初期化
+    ↓
+global rank / world size取得
+    ↓
+local rank取得
+    ↓
+GPU選択
+    ↓
+担当範囲決定
+    ↓
+GPUで部分和計算
+    ↓
+GPUからホストへ部分和取得
+    ↓
+MPI_Reduce
+    ↓
+rank 0で解析解と比較
+    ↓
+MPI終了
+```
+
+不要なrank間通信は行わないでください。
+
+全体和の集約には、
+
+```cpp
+MPI_Reduce
+```
+
+を使用してください。
+
+# 実行時出力
+
+デバッグおよび学習目的のため、各rankについて最低限以下を表示してください。
+
+```text
+global rank
+local rank
+使用GPU番号
+担当範囲
+GPUで計算した部分和
+```
+
+ただし、rank数が非常に多い場合に大量の出力を生成しないよう注意してください。
+
+rank 0では最後に、
+
+```text
+MPI + CUDAによる計算結果
+解析解
+一致しているか
+```
+
+を表示してください。
+
+例えば、
+
+```text
+Computed sum : 5000000050000000
+Expected sum : 5000000050000000
+Result       : PASS
+```
+
+のようにしてください。
+
+# CMake
+
+`/workspace/CMakeLists.txt` を作成してください。
+
+CUDAとMPIを使用するプロジェクトとして構成してください。
+
+可能であれば以下のような構成を使用してください。
+
+```cmake
+cmake_minimum_required(...)
+
+project(
+    multi_gpu_sum
+    LANGUAGES CXX CUDA
+)
+
+find_package(MPI REQUIRED)
+
+add_executable(
+    multi_gpu_sum
+    multi_gpu_sum.cu
+)
+
+target_link_libraries(
+    multi_gpu_sum
+    PRIVATE MPI::MPI_CXX
+)
+```
+
+実際のCUDA/MPI環境に合わせて必要な修正を行ってください。
+
+不必要に複雑なCMake設定は避けてください。
+
+# ビルド
+
+ビルドは `/workspace/build` を使用してください。
+
+例えば、
+
+```bash
+cmake -S /workspace -B /workspace/build
+cmake --build /workspace/build -j
+```
+
+のようにしてください。
+
+ビルドエラーが発生した場合は、そのエラーを調査し、
+
+- `multi_gpu_sum.cu`
+- `CMakeLists.txt`
+
+の必要な部分だけを修正してください。
+
+環境側のファイルを書き換えてはいけません。
+
+パッケージをインストールしてはいけません。
+
+# 実行
+
+ビルドに成功したら、現在割り当てられている計算資源の範囲内で実行してください。
+
+例えば、
+
+```bash
+mpirun -np 1 /workspace/build/multi_gpu_sum 100000000
+```
+
+または、複数GPUが現在のジョブに割り当てられている場合、
+
+```bash
+mpirun -np 2 /workspace/build/multi_gpu_sum 100000000
+```
+
+などを使用してください。
+
+# GPU数について
+
+現在のPBSジョブに実際に割り当てられているGPUだけを使用してください。
+
+割り当てられていないGPUを使用しようとしてはいけません。
+
+複数GPUが利用可能か確認する場合は、CUDA APIで確認することを優先してください。
+
+例えば作成したプログラム内の、
+
+```cpp
+cudaGetDeviceCount()
+```
+
+を使用してください。
+
+利用可能であれば、
+
+```bash
+nvidia-smi -L
+```
+
+を補助的に使用しても構いません。
+
+# 複数GPUが利用できない場合
+
+現在のジョブにGPUが1台しか割り当てられていない場合は、
+
+- コードはマルチGPU対応として実装する
+- 1 MPI rank + 1 GPUでビルド・実行テストする
+- 2 GPU以上での実行は行わない
+- 新しいPBSジョブを投入しない
+- 「現在の割り当てが1 GPUのため、マルチGPU実行テストは未実施」と最終報告する
+
+という対応にしてください。
+
+マルチGPUテストのために勝手に新しいジョブを投入してはいけません。
+
+# 実行失敗時
+
+実行が失敗した場合は、原因を確認してください。
+
+ただし、システム全体を探索してはいけません。
+
+確認対象は主に、
+
+```text
+作成したソースコード
+CMakeLists.txt
+ビルドログ
+実行時エラー
+現在の環境変数
+```
+
+程度に限定してください。
+
+システム設定や外部ディレクトリを変更してはいけません。
+
+# 禁止事項
+
+以下は禁止します。
+
+- `apptainer` の実行
+- `singularity` の実行
+- nested containerの起動
+- `/containers/pytorch.sif` の起動
+- `/workspace` 外のファイル変更
+- `/` から始まる再帰検索
+- `/work` の探索
+- `/containers` の探索
+- `/usr` の探索
+- `/opt` の探索
+- `/etc` の探索
+- `/var` の探索
+- `/home` の探索
+- `/proc` の探索
+- システム全体からCUDA/MPI等を検索すること
+- パッケージのインストール
+- `apt install`
+- `apt-get install`
+- `pip install`
+- `conda install`
+- システム設定変更
+- 新しいPBSジョブの投入
+- 新しいSlurmジョブの投入
+- 現在割り当てられていないGPUの使用
+- 不要なファイルの大量生成
+- OpenCode.logやvLLM.logの解析
+- 環境調査だけを延々と続けること
+
+# 作業方針
+
+最初の環境確認は短時間で終了してください。
+
+以下が確認できた場合、
+
+```text
+nvcc
+mpicxx
+cmake
+g++
+```
+
+それ以上の環境探索を行わず、直ちにコード作成へ進んでください。
+
+コード作成がこのタスクの中心です。
+
+環境の完全な調査は目的ではありません。
+
+# 最終的に期待するファイル構成
+
+最終的には `/workspace` が概ね以下のようになることを期待します。
+
+```text
+/workspace/
+├── prompt.txt
+├── multi_gpu_sum.cu
+├── CMakeLists.txt
+└── build/
+    └── multi_gpu_sum
+```
+
+`OpenCode.log` や `vLLM.log` が存在していても、それらは無視してください。
+
+# 正しさの検証
+
+最低でも1つのNについて実際にプログラムを実行してください。
+
+例えば、
+
+```text
+N = 100000000
+```
+
+などを使用してください。
+
+得られた結果を解析解
+
+```text
+N(N+1)/2
+```
+
+と比較してください。
+
+一致した場合は、
+
+```text
+PASS
+```
+
+一致しなかった場合は、
+
+```text
+FAIL
+```
+
+と明確に表示してください。
+
+可能であれば小さいNでも確認してください。
+
+例えば、
+
+```text
+N = 10
+期待値 = 55
+```
+
+です。
+
+# 最終報告
+
+すべての作業が終わったら、以下を簡潔にまとめてください。
+
+- 作成したファイル
+- 変更したファイル
+- 使用したコンパイラ
+- CUDAのバージョン
+- MPIのバージョン
+- CMakeのバージョン
+- 並列化方式
+- MPI rankによる計算領域分割方式
+- ノード内rankの取得方法
+- MPI rankとGPUの割り当て方法
+- CUDAカーネルの計算方式
+- GPU内reduction方式
+- MPI通信方式
+- ビルド方法
+- 実行方法
+- 実際に使用したMPI rank数
+- 実際に使用したGPU数
+- 実行したN
+- 計算結果
+- 解析解
+- PASSまたはFAIL
+- 発生したビルドエラーと修正内容
+- 発生した実行時エラーと修正内容
+- マルチGPU実行を実施できたか
+- 未解決の問題
+
+環境調査の説明を長々と書かず、実装・ビルド・実行・検証結果を中心に報告してください。

@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Build products
+build/
+dist/
+
+# Apptainer containers
+*.sif
+*.img
+
+# Machine-learning model weights
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+
+# Logs and job output
+*.log
+*.out
+*.err
+*.o[0-9]*
+*.e[0-9]*
+
+# Secrets
+.env
+.env.*
+*.pem
+
+# OS/editor files
+.DS_Store
