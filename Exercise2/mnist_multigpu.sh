@@ -16,11 +16,11 @@ echo "MASTER_ADDR=$MASTER_ADDR"
 echo "MASTER_PORT=$MASTER_PORT"
 
 mpirun bash -c "
-  echo host=\$(hostname), MPI_rank=\${OMPI_COMM_WORLD_RANK}
-  apptainer exec --nv pytorch.sif \
+	echo host=\$(hostname), MPI_rank=\${OMPI_COMM_WORLD_RANK}
+	apptainer exec --nv pytorch.sif \
     torchrun --nnodes=2 --nproc-per-node=1 \
-      --node-rank=\${OMPI_COMM_WORLD_RANK} \
-      --master-addr=${MASTER_ADDR} \
-      --master-port=${MASTER_PORT} \
-      mnist.py
+    	--node-rank=\${OMPI_COMM_WORLD_RANK} \
+    	--master-addr=${MASTER_ADDR} \
+    	--master-port=${MASTER_PORT} \
+    	mnist.py
 "
