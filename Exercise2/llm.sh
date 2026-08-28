@@ -101,15 +101,18 @@ echo "Finished."
 # # 計算ノード 内で、 vllm.sif コンテナの vllm を実行
 # module load apptainer
 # cd $PBS_O_WORKDIR
+# VLLM_API_KEY=$(openssl rand -hex 32)
+# echo "API key: $VLLM_API_KEY"
 # apptainer exec --nv --env XDG_CACHE_HOME=cache vllm.sif \ 
 # vllm serve models/Qwen3.8-27B --served-model-name qwen3-coder \
 # --host 0.0.0.0 --enable-auto-tool-choice --tool-call-parser qwen3_coder \
-# --max-num-seqs 64
+# --max-num-seqs 64 --api-key $VLLM_API_KEY
 
 # # 新たに別のターミナルを起動し、 Miyabi-G へログイン。以降そのターミナルで実行。
 # # 新たなターミナルから mgXXXX へ curl コマンドを実行し、返るか確認
 # NODE_NAME=mgXXXX
-# curl http://${NODE_NAME}:8000/v1/models
+# VLLM_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxx
+# curl http://${NODE_NAME}:8000/v1/models -H "Authorization: Bearer ${VLLM_API_KEY}"
 # # その別ターミナル上で OpenCode の変数を設定し、実行
 # OPENCODE_CONFIG_CONTENT='{
 # 	"$schema": "https://opencode.ai/config.json",
@@ -118,8 +121,8 @@ echo "Finished."
 # 			"name": "Local vLLM",
 # 			"package": "@opencode-ai/ai/providers/openai-compatible",
 # 			"settings": {
-# 				"baseURL": "http://$NODE_NAME:8000/v1"
-# 				"api"
+# 				"baseURL": "http://$NODE_NAME:8000/v1",
+# 				"apiKey":"{env:VLLM_API_KEY}"
 # 			},
 # 			"models": {
 # 				"qwen3-coder": {
@@ -130,4 +133,4 @@ echo "Finished."
 # 		}
 # 	}
 # }'
-# apptainer --env OPENCODE_CONFIG_CONTENT="$OPENCODE_CONFIG_CONTENT" opencode.sif opencode 
+# apptainer --env VLLM_API_KEY="${VLLM_API_KEY}" --env OPENCODE_CONFIG_CONTENT="$OPENCODE_CONFIG_CONTENT" opencode.sif opencode 
