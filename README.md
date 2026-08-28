@@ -1,4 +1,4 @@
-# AI for Science 演習
+# AI for Science のためのコンテナ講習会演習
 
 PBS ジョブスケジューラと Apptainer を利用し、Python、PyTorch、分散 GPU 計算、ローカル LLM を実行するための演習用リポジトリです。
 
